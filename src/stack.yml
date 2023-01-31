@@ -1,0 +1,44 @@
+version: '3.1'
+
+networks:
+  net_kube:
+    driver: bridge
+
+volumes:
+  vol_pg:
+
+services:
+  db_kube:
+    image: postgres:14.6
+    restart: always
+    networks:
+     - net_kube
+    volumes:
+     - vol_pg:/data/db72
+    environment:
+      POSTGRES_USER: "kubedevnews"
+      POSTGRES_PASSWORD: "Pg#123"
+      POSTGRES_DB: "kubedevnews"
+
+  app_kube:
+    image: tavaresdb/kube-news:v1
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+     - net_kube
+    environment:
+      DB_HOST: "db_kube"
+      DB_USERNAME: "kubedevnews"
+      DB_PASSWORD: "Pg#123"
+      DB_DATABASE: "kubedevnews"
+
+  admin_pg:
+    image: dpage/pgadmin4
+    ports:
+     - 6543:80
+    networks:
+     - net_kube
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "tavares90.joao@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "PgAdmin2023!"
