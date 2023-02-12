@@ -1,0 +1,88 @@
+# Deployment do Postgres
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:14.6
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: kubedevnews
+            - name: POSTGRES_PASSWORD
+              value: Pg#123
+            - name: POSTGRES_DB
+              value: kubedevnews
+
+---
+
+# Service do Postgres
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+  type: ClusterIP
+
+---
+
+# Deployment da app web Kube News
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: tavaresdb/kube-news:v1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_HOST
+              value: postgres
+            - name: DB_USERNAME
+              value: kubedevnews
+            - name: DB_PASSWORD
+              value: Pg#123
+            - name: DB_DATABASE
+              value: kubedevnews
+
+---
+
+# Service da app web Kube News
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30000
+  type: NodePort
